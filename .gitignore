@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+logs/
+output/
+*.csv
+*.xlsx
+*.json
+*.log
+.DS_Store
+.env
+
