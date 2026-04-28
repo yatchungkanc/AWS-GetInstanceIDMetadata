@@ -13,26 +13,26 @@ from .session import AwsAccountSessionAgent
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Enrich AWS vulnerability findings with resource metadata and tags.")
-    parser.add_argument("--input-file", default="[Table] All Findings_data-4.csv")
-    parser.add_argument("--output-file", help="Output CSV path. Defaults to output/enriched-findings-<timestamp>.csv.")
-    parser.add_argument("--log-file", help="JSONL log path. Defaults to logs/enriched-findings-<timestamp>.jsonl.")
+    parser.add_argument("-i", "--input-file", default="[Table] All Findings_data-4.csv")
+    parser.add_argument("-o", "--output-file", help="Output CSV path. Defaults to output/enriched-findings-<timestamp>.csv.")
+    parser.add_argument("-l", "--log-file", help="JSONL log path. Defaults to logs/enriched-findings-<timestamp>.jsonl.")
     parser.add_argument(
-        "--aws-profile-strategy",
+        "-p", "--aws-profile-strategy",
         default="account_id_profile",
         choices=["account_id_profile", "named_profile_map", "sso_account_role", "default"],
     )
-    parser.add_argument("--profile-map-file")
-    parser.add_argument("--default-region", default="us-east-1")
+    parser.add_argument("-m", "--profile-map-file")
+    parser.add_argument("-r", "--default-region", default="us-east-1")
     parser.add_argument("--max-retries", type=int, default=3)
     parser.add_argument("--retry-backoff-seconds", type=float, default=1.0)
-    parser.add_argument("--dry-run", action="store_true", help="Parse and write output without calling AWS APIs.")
+    parser.add_argument("-d", "--dry-run", action="store_true", help="Parse and write output without calling AWS APIs.")
     parser.add_argument("--no-sso-login", action="store_true", help="Do not run aws sso login when credentials fail.")
     parser.add_argument(
         "--no-interactive-account-switch",
         action="store_true",
         help="Do not pause for manual default credential switching when no usable profile is available.",
     )
-    parser.add_argument("--limit", type=int, help="Process only the first N valid source rows.")
+    parser.add_argument("-n", "--limit", type=int, help="Process only the first N valid source rows.")
     return parser
 
 

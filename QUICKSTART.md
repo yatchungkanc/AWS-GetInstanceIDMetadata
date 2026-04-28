@@ -24,11 +24,19 @@ Steps:
 6. When Tableau shows `The file is ready to download`, click `Download` again.
 7. Move the downloaded CSV into this project folder.
 
-The screenshots in `DownloadSteps/` show the flow:
+The screenshots below show the flow:
 
-- `DownloadSteps/step-1.png`: choose `Data` from the Tableau download menu.
-- `DownloadSteps/step-2.png`: review the `Summary` data table.
-- `DownloadSteps/step-3.png`: click the final `Download` button when the file is ready.
+**Step 1: Choose `Data` from the Tableau download menu**
+
+![Step 1 - Choose Data from Tableau download menu](DownloadSteps/step-1.png)
+
+**Step 2: Review the `Summary` data table**
+
+![Step 2 - Review Summary data table](DownloadSteps/step-2.png)
+
+**Step 3: Click the final `Download` button when the file is ready**
+
+![Step 3 - Click Download button](DownloadSteps/step-3.png)
 
 Use a clear filename for the downloaded export, for example:
 
@@ -37,6 +45,15 @@ input/cloud-config-findings.csv
 ```
 
 Then pass that file explicitly:
+
+```bash
+python3 run_findings_metadata.py \
+  -i input/cloud-config-findings.csv \
+  -d \
+  -n 5
+```
+
+Or using the long form:
 
 ```bash
 python3 run_findings_metadata.py \
@@ -60,9 +77,7 @@ python3 -m pip install -r requirements.txt
 Run a dry-run first. This verifies parsing, grouping, logging, output CSV writing, and console progress without calling AWS APIs.
 
 ```bash
-python3 run_findings_metadata.py \
-  --dry-run \
-  --limit 5
+python3 run_findings_metadata.py -d -n 5
 ```
 
 Expected outputs:
@@ -85,8 +100,7 @@ You do not need to create a new profile if your current AWS credentials already 
 Use this mode when you want the program to reuse your current/default credentials and prompt you when it reaches an account that needs different credentials.
 
 ```bash
-python3 run_findings_metadata.py \
-  --aws-profile-strategy default
+python3 run_findings_metadata.py -p default
 ```
 
 If the current credentials are not for the account being processed, the program will:
@@ -102,18 +116,15 @@ Run this from a real interactive terminal. Non-interactive IDE runners may not s
 
 ## 6. Run With Account-ID Profiles
 
-Use this only if your AWS CLI profile names are the same as the 12-digit AWS account IDs.
+Use this if your AWS CLI profile names follow a predictable pattern based on the account ID or account name (e.g., `prod-account`, `nonprod-account`, `account-name-env`).
+
+Note: This strategy assumes profile names exactly match account IDs, which is uncommon. Most organizations use meaningful names instead. If your profiles use meaningful names, skip to Step 7 to use a profile map.
 
 ```bash
-python3 run_findings_metadata.py \
-  --aws-profile-strategy account_id_profile
+python3 run_findings_metadata.py -p account_id_profile
 ```
 
-Example expected profile name:
-
-```text
-023759106857
-```
+This strategy is rarely used in practice since profile names are typically meaningful identifiers rather than raw account IDs.
 
 ## 7. Run With a Profile Map
 
@@ -130,9 +141,7 @@ account_id,profile
 Then run:
 
 ```bash
-python3 run_findings_metadata.py \
-  --aws-profile-strategy named_profile_map \
-  --profile-map-file profiles.csv
+python3 run_findings_metadata.py -p named_profile_map -m profiles.csv
 ```
 
 JSON profile maps are also supported:
@@ -152,14 +161,17 @@ python3 run_findings_metadata.py --help
 
 Common options:
 
-- `--limit N`: process only the first `N` valid findings.
-- `--dry-run`: skip AWS calls and write output rows with `metadata_status=dry_run`.
-- `--output-file PATH`: write the enriched CSV to an explicit path.
-- `--log-file PATH`: write JSONL activity logs to an explicit path.
+- `-i`, `--input-file PATH`: input findings CSV file.
+- `-o`, `--output-file PATH`: write the enriched CSV to an explicit path.
+- `-l`, `--log-file PATH`: write JSONL activity logs to an explicit path.
+- `-p`, `--aws-profile-strategy STRATEGY`: profile strategy (default, account_id_profile, named_profile_map, sso_account_role).
+- `-m`, `--profile-map-file PATH`: profile map file (CSV or JSON).
+- `-r`, `--default-region REGION`: region used for STS checks. Resource metadata still uses each finding's region.
+- `-d`, `--dry-run`: skip AWS calls and write output rows with `metadata_status=dry_run`.
+- `-n`, `--limit N`: process only the first `N` valid findings.
+- `--max-retries N`: retry count for transient AWS metadata errors.
 - `--no-sso-login`: do not run `aws sso login` automatically for selected profiles.
 - `--no-interactive-account-switch`: fail/skip instead of prompting for credential selection.
-- `--default-region REGION`: region used for STS checks. Resource metadata still uses each finding's region.
-- `--max-retries N`: retry count for transient AWS metadata errors.
 
 ## 9. Outputs
 
